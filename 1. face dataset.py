@@ -10,14 +10,24 @@ import os
 from config_loader import ConfigLoader
 import re
 
+def pad(box, padding):
+    # apply padding
+    (x, y, w, h) = box
+    x = max(0, x-padding)
+    y = max(0, y-padding)
+    w = min(width, x+w+padding)-x
+    h = min(height, y+h+padding)-y
+    return (x, y, w, h)
+
 # For each person, enter one numeric face id (must enter number start from 1, this is the lable of person 1)
 face_id = ""
 while len(face_id) == 0:
     face_id = input('\n==> enter user id end press <return> :  ')
     if any( [ re.search("User." + face_id + ".[0-9]+.jpg", f) for f in os.listdir('dataset/') ] ):
-        print("[WARNING] User name already exists in data base, continuing will overwrite existing files")
+        print("[WARNING] User name already exists in data base, continuing will delete existing files")
         k = input("Continue? [y|n]\t").lower()
         if k == "y":
+            [ os.remove('dataset/' + file) for file in os.listdir('dataset/') if re.search("User." + face_id + ".[0-9]+.jpg", file) ]
             break
         elif k == "n":
             face_id = ""
@@ -29,8 +39,10 @@ n_pictures = config["pictures_per_person"]
 capture_interval = config["capture_interval"]
 
 cam = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-cam.set(3, 640) # set video width
-cam.set(4, 480) # set video height
+width = 640
+height = 480
+cam.set(3, width) # set video width
+cam.set(4, height) # set video height
 
 #make sure 'haarcascade_frontalface_default.xml' is in the same folder as this code
 face_detector = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
@@ -40,6 +52,8 @@ print("\n [INFO] Initializing face capture. Look the camera and wait ...")
 # Initialize individual sampling face count
 count = 0
 failed = 0
+# Pad pixels at each side
+padding = 15
 
 while(count < n_pictures):
 
@@ -55,22 +69,24 @@ while(count < n_pictures):
     
     sleep(capture_interval)
 
-    for (x,y,w,h) in faces:
-        cv2.rectangle(img, (x,y), (x+w,y+h), (255,0,0), 2)     
+    for face in faces:
+        (x, y, w, h) = pad(face, padding)
+        cv2.rectangle(img, (x,y), (x+w,y+h), (255,0,0), 2)
         count += 1
         failed = 0
         cv2.imwrite("dataset/User." + str(face_id) + '.' + str(count) + ".jpg", gray[y:y+h,x:x+w])
-        # cv2.imshow('image', img)
-        print("\t", count/n_pictures * 100.0, " %", end='\r')
+        cv2.imshow('image', img)
+        progress = int(count/n_pictures * 10)
+        print(" > ", progress*"##", (10-progress)*"  ", "||", progress * 10.0, " %", end='\r')
 
     k = cv2.waitKey(100) & 0xff # Press 'ESC' for exiting video
     if k == 27:
         print("[ERROR] Abort process, cleaning up...")
         cam.release()
         cv2.destroyAllWindows()
-        [ os.remove(file) for file in os.listdir('dataset/') if re.search("User." + face_id + ".[0-9]+.jpg", file) ]
+        [ os.remove('dataset/' + file) for file in os.listdir('dataset/') if re.search("User." + face_id + ".[0-9]+.jpg", file) ]
         raise RuntimeError("Process cancelled by User")
 
-print("\n [INFO] Exiting Program and cleanup stuff")
+print("\n [INFO] Done, created profile for ", face_id, " (", n_pictures, " pictures taken)")
 cam.release()
 cv2.destroyAllWindows()
