@@ -9,15 +9,8 @@ import cv2
 import os
 from config_loader import ConfigLoader
 import re
-
-def pad(box, padding):
-    # apply padding
-    (x, y, w, h) = box
-    x = max(0, x-padding)
-    y = max(0, y-padding)
-    w = min(width, x+w+padding)-x
-    h = min(height, y+h+padding)-y
-    return (x, y, w, h)
+import utils
+from profiles import *
 
 # For each person, enter one numeric face id (must enter number start from 1, this is the lable of person 1)
 face_id = ""
