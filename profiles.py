@@ -37,13 +37,7 @@ class Profiles:
 
     def remove_profile(self, id):
         if not self.profiles is None:
-            found = False
-            for p in self.profiles:
-                if id == p.id:
-                    self.profiles.remove(p)
-                    found = True
-                    break
-            if found:
+                [ os.remove('dataset/' + file) for file in os.listdir('dataset/') if re.search("User." + id + ".[0-9]+.jpg", file) ]
                 self.flush()
                 return (True, "Removed profile")
             else:

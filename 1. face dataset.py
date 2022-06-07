@@ -13,6 +13,15 @@ import utils
 from profiles import *
 
 # For each person, enter one numeric face id (must enter number start from 1, this is the lable of person 1)
+
+def abort(cam, face_id: str, profiles: Profiles):
+    print("[ERROR] Abort process, cleaning up...")
+    cam.release()
+    cv2.destroyAllWindows()
+    profiles.remove_profile(face_id)
+    print("Process cancelled by User")
+    exit(1)
+
 face_id = ""
 while len(face_id) == 0:
     face_id = input('\n==> enter user id end press <return> :  ')
@@ -47,7 +56,7 @@ count = 0
 failed = 0
 # Pad pixels at each side
 padding = 15
-
+try:
 while(count < n_pictures):
 
     ret, img = cam.read()
@@ -74,11 +83,11 @@ while(count < n_pictures):
 
     k = cv2.waitKey(100) & 0xff # Press 'ESC' for exiting video
     if k == 27:
-        print("[ERROR] Abort process, cleaning up...")
-        cam.release()
-        cv2.destroyAllWindows()
-        [ os.remove('dataset/' + file) for file in os.listdir('dataset/') if re.search("User." + face_id + ".[0-9]+.jpg", file) ]
-        raise RuntimeError("Process cancelled by User")
+            abort(cam, face_id, profiles)
+except KeyboardInterrupt as e:
+    abort(cam, face_id, profiles)
+
+
 
 print("\n [INFO] Done, created profile for ", face_id, " (", n_pictures, " pictures taken)")
 cam.release()
