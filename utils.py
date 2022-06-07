@@ -2,9 +2,9 @@ import os
 
 def image_dir_generator(path):
     for f in os.listdir(path):
-        path = os.path.join(path, f)
-        if os.path.isfile(path):
-            yield path
+        image_path = os.path.join(path, f)
+        if os.path.isfile(image_path):
+            yield image_path
 
 def pad(box, padding, width, height):
     # apply padding
