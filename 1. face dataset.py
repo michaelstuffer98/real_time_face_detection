@@ -13,6 +13,7 @@ import utils
 from profiles import *
 
 # For each person, enter one numeric face id (must enter number start from 1, this is the lable of person 1)
+VISUALIZE = False
 
 def abort(cam, face_id: str, profiles: Profiles):
     print("[ERROR] Abort process, cleaning up...")
@@ -23,17 +24,31 @@ def abort(cam, face_id: str, profiles: Profiles):
     exit(1)
 
 face_id = ""
-while len(face_id) == 0:
+profiles = Profiles()
+
+while 1:
     face_id = input('\n==> enter user id end press <return> :  ')
-    if any( [ re.search("User." + face_id + ".[0-9]+.jpg", f) for f in os.listdir('dataset/') ] ):
-        print("[WARNING] User name already exists in data base, continuing will delete existing files")
-        k = input("Continue? [y|n]\t").lower()
+    if len(face_id) == 0:
+        continue
+    ret = profiles.add_profile(face_id)
+    print(ret[1])
+
+    if ret[0] == PROFILE_RET.OK:
+        break
+
+    if ret[0] == PROFILE_RET.DUPLICATE:
+        print("[WARNING] User name already exists in data base, continuing will delete existing user pictures")
+        k = ""
+        while(not k in ['n', 'y']):
+            k = input("Continue? [y|n]\t").lower()
         if k == "y":
             [ os.remove('dataset/' + file) for file in os.listdir('dataset/') if re.search("User." + face_id + ".[0-9]+.jpg", file) ]
             break
         elif k == "n":
             face_id = ""
             continue
+    elif ret[0] == PROFILE_RET.FAILURE:
+        exit(1)
 
 #start detect your face and takes n pictures
 config = ConfigLoader()
@@ -49,7 +64,6 @@ cam.set(4, height) # set video height
 #make sure 'haarcascade_frontalface_default.xml' is in the same folder as this code
 face_detector = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 
-
 print("\n [INFO] Initializing face capture. Look the camera and wait ...")
 # Initialize individual sampling face count
 count = 0
@@ -57,32 +71,34 @@ failed = 0
 # Pad pixels at each side
 padding = 15
 try:
-while(count < n_pictures):
+    while(count < n_pictures):
 
-    ret, img = cam.read()
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    faces = face_detector.detectMultiScale(gray, 1.3, 5)
+        ret, img = cam.read()
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        faces = face_detector.detectMultiScale(gray, 1.3, 5)
 
-    if len(faces) == 0:
-        failed += 1
-        if failed % 5 == 0:
+        if len(faces) == 0:
+            failed += 1
+            if failed % 5 == 0:
+                failed = 0
+                print("[WARNING] Can't detect your face!")
+        
+        sleep(capture_interval)
+
+        for face in faces:
+            (x, y, w, h) = face# utils.pad(face, padding, width, height)
+            cv2.rectangle(img, (x,y), (x+w,y+h), (255,0,0), 2)
+            count += 1
             failed = 0
-            print("[WARNING] Can't detect your face!")
-    
-    sleep(capture_interval)
+            cv2.imwrite("dataset/User." + str(face_id) + '.' + str(count) + ".jpg", gray[y:y+h,x:x+w])
+            
+            if VISUALIZE:
+                cv2.imshow('image', img)
+            
+            utils.print_progress(count/n_pictures)
 
-    for face in faces:
-        (x, y, w, h) = pad(face, padding)
-        cv2.rectangle(img, (x,y), (x+w,y+h), (255,0,0), 2)
-        count += 1
-        failed = 0
-        cv2.imwrite("dataset/User." + str(face_id) + '.' + str(count) + ".jpg", gray[y:y+h,x:x+w])
-        cv2.imshow('image', img)
-        progress = int(count/n_pictures * 10)
-        print(" > ", progress*"##", (10-progress)*"  ", "||", progress * 10.0, " %", end='\r')
-
-    k = cv2.waitKey(100) & 0xff # Press 'ESC' for exiting video
-    if k == 27:
+        k = cv2.waitKey(100) & 0xff # Press 'ESC' for exiting video
+        if k == 27:
             abort(cam, face_id, profiles)
 except KeyboardInterrupt as e:
     abort(cam, face_id, profiles)

@@ -1,55 +1,74 @@
+import enum
 import json
 
 from numpy import isin
+from enum import Enum
+import os
+import re
+class PROFILE_RET(Enum):
+    OK = 0,
+    DUPLICATE = 1,
+    FAILURE = 2
 
-class Profile:
-    def __init__(self, name, id):
-        self.name = name
-        self.id = id
+# class Profile:
+#     def __init__(self, name):
+#         self.name = name
+#         self.label = 0
     
-    def json(self):
-        return dict({"name": self.name, "id": self.id })
+#     def json(self):
+#         return dict({"name": self.name})
 
-    def __eq__(self, __o: object) -> bool:
-        if isinstance(__o, Profile):
-            return self.id == __o.id
-        if isinstance(__o, int):
-            return self.id == __o
-        raise RuntimeError("Can't compare object of type 'Profile' to object og type '", type(__o), "'")
+#     def __eq__(self, __o: object) -> bool:
+#         if isinstance(__o, Profile):
+#             return self.name == __o.name
+#         if isinstance(__o, str):
+#             return self.name == __o
+#         raise RuntimeError("Can't compare object of type 'Profile' to object og type '", type(__o), "'")
 
 class Profiles:
     def __init__(self):
         self.profiles = None
-        pass
+        self.read_profiles()
 
     def json(self):
-        return dict({"profiles": [ p.json() for p in self.profiles ]})
+        if self.profiles == None:
+            return ""        
+        r = []
+        [ r.append({"name": k, "label": v}) for k, v in self.profiles.items() ]        
+        return {"profiles" : r}
 
-    def add_profile(self, profile: Profile):
+    def add_profile(self, name: str):
+        name = name
         if not self.profiles is None:
-            if profile in self.profiles:
-                return (False, "Duplicate Profile id")
-            self.profiles.append(profile)
-            self.flush()
-            return (True, "Added profile")
+            if name not in self.profiles: 
+                self.profiles[name] = 0
+                self.flush()
+                return (PROFILE_RET.OK, "Added profile '" + name + "'")
+            else:
+                return (PROFILE_RET.DUPLICATE, "Profile '" + name + "' already exists")
         else:
-            return (False, "Read in the profiles before accessing them")
+            return (PROFILE_RET.FAILURE, "Read in the profiles before accessing them")
 
-    def remove_profile(self, id):
+    def remove_profile(self, id: str):
         if not self.profiles is None:
+            deleted_key = self.profiles.pop(id, None)
+            if not deleted_key == None:
                 [ os.remove('dataset/' + file) for file in os.listdir('dataset/') if re.search("User." + id + ".[0-9]+.jpg", file) ]
                 self.flush()
-                return (True, "Removed profile")
+                return (True, "Removed profile '" + id + "'")
             else:
-                return (True, "Profile id not found")
+                return (True, "Profile '" + id + "' not found")
         else:
             return (False, "Read in the profiles before accessing them")
 
-    def read_profiles(self):
-        self.profiles = []
+    def read_profiles(self, overwrite=False):
+        if not self.profiles is None and overwrite == False:
+            print("Profiles have already been readed, use override flag")
+            return
+        self.profiles = {}
         json_profiles = self.generator_profiles()
         for profile in json_profiles:
-            self.profiles.append(Profile(profile["name"], profile["id"]))
+            self.profiles[profile["name"]] = profile["label"]
 
     def flush(self):
         with open("profiles.json", mode="w") as f:
@@ -62,6 +81,21 @@ class Profiles:
         for profile in profiles["profiles"]:
             yield profile
 
-profiles = Profiles()
-profiles.read_profiles()
-profiles.remove_profile(7)
+# Simple test routine
+def test():
+    import os
+
+    init_size = os.path.getsize('profiles.json')
+
+    profiles = Profiles()
+    r = profiles.add_profile("case")
+    print(r[1])
+    r = profiles.add_profile("case")
+    print(r[1])
+    r = profiles.remove_profile("case")
+    print(r[1])
+    r = profiles.remove_profile("case")
+    print(r[1])
+    
+    assert(init_size == os.path.getsize('profiles.json'))
+# test()
