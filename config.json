@@ -1,4 +1,5 @@
 {
     "pictures_per_person": 10,
-    "capture_interval": 1
+    "capture_interval": 1.0,
+    "frame_averaging": 7
 }

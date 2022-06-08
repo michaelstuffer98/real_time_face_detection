@@ -8,10 +8,34 @@ Developed by Marcelo Rovai - MJRoBot.org @ 21Feb18
 
 '''
 
+from configparser import ConfigParser
 import cv2
 import numpy as np
-import os 
+import os
+from config_loader import ConfigLoader 
 from profiles import Profiles
+import numpy as np
+from collections import deque as dq
+
+class FaceAveraging:
+    def __init__(self, avg_frames: int) -> None:
+        self.N = avg_frames
+        self.faces = {}
+        self.kernel = np.ones(self.N)/self.N
+
+    def new_frame(self, x, y, w, h, id):
+        if id == "unknown":
+            return (x, y, w, h)
+        if id not in self.faces:
+            self.faces[id] = (dq([x], self.N), dq([y], self.N), dq([w], self.N), dq([h], self.N))
+        else:
+            self.faces[id][0].append(x)
+            self.faces[id][1].append(y)
+            self.faces[id][2].append(w)
+            self.faces[id][3].append(h)
+        f = self.faces[id]
+        return (int(np.mean(f[0])), int(np.mean(f[1])), int(np.mean(f[2])), int(np.mean(f[3])))
+
 
 recognizer = cv2.face.LBPHFaceRecognizer_create()
 recognizer.read('model/trainer.yml')   #load trained model
@@ -32,6 +56,9 @@ minW = 0.1*cam.get(3)
 minH = 0.1*cam.get(4)
 
 profiles = Profiles()
+
+config = ConfigLoader()
+faces_avg = FaceAveraging(config.get("frame_averaging"))
 
 while True:
 
@@ -62,6 +89,9 @@ while True:
             id = "unknown"
             confidence = "  {0}%".format(round(100 - confidence))
         
+        (x, y, w, h) = faces_avg.new_frame(x, y, w, h, id)
+
+        cv2.rectangle(img, (x,y), (x+w,y+h), (0,255,0), 2)
         cv2.putText(img, str(id), (x+5,y-5), font, 1, (255,255,255), 2)
         cv2.putText(img, str(confidence), (x+5,y+h-5), font, 1, (255,255,0), 1)  
     
