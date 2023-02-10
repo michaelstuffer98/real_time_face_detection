@@ -14,8 +14,9 @@ import cv2
 import numpy as np
 from PIL import Image #pillow package
 import os
-import src.utils as utils
-from src.profiles import Profiles
+import real_time_face_detection.utils as utils
+from real_time_face_detection.profiles import Profiles
+
 
 # Path for face image database
 path = 'dataset'

@@ -12,8 +12,8 @@ from configparser import ConfigParser
 import cv2
 import numpy as np
 import os
-from src.config_loader import ConfigLoader 
-from src.profiles import Profiles
+from real_time_face_detection.config_loader import ConfigLoader 
+from real_time_face_detection.profiles import Profiles
 import numpy as np
 from collections import deque as dq
 

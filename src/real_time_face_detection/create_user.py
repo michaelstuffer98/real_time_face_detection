@@ -7,10 +7,11 @@ Capture multiple Faces from multiple users to be stored on a DataBase (dataset d
 from time import sleep
 import cv2
 import os
-from src.config_loader import ConfigLoader
+from real_time_face_detection.config_loader import ConfigLoader
 import re
-import src.utils as utils
-from src.profiles import *
+import real_time_face_detection.utils as utils
+from real_time_face_detection.profiles import *
+
 
 # For each person, enter one numeric face id (must enter number start from 1, this is the lable of person 1)
 VISUALIZE = False
