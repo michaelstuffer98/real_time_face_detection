@@ -76,7 +76,7 @@ class Profiles:
         self.changed = False
 
     def generator_profiles(self):
-        with open("profiles.json", "r") as f:
+        with open("src/real_time_face_detection/ressources/profiles.json", "r") as f:
             profiles = json.load(f)
         for profile in profiles["profiles"]:
             yield profile

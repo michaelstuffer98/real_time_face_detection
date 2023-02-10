@@ -14,17 +14,12 @@ import cv2
 import numpy as np
 from PIL import Image #pillow package
 import os
-import utils
-from profiles import Profiles
+import real_time_face_detection.utils as utils
+from real_time_face_detection.profiles import Profiles
 
-# Path for face image database
-path = 'dataset'
-
-recognizer = cv2.face.LBPHFaceRecognizer_create()
-detector = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
 
 # function to get the images and label data
-def getImagesAndLabels(path):
+def getImagesAndLabels(path, detector):
     # Set up a generator to iterate through the image directory
     image_dir = utils.image_dir_generator(path)
     # image_dir = [ os.path.join(path, f) for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
@@ -63,14 +58,26 @@ def getImagesAndLabels(path):
 
     return faceSamples,ids
 
-print ("\n [INFO] Training face models")
-faces,ids = getImagesAndLabels(path)
-recognizer.train(faces, np.array(ids))
 
-# Save the model into trainer/trainer.yml
-recognizer.write('model/trainer.yml')
+def main(args):
+    # Path for face image database
+    path = 'dataset'
+
+    recognizer = cv2.face.LBPHFaceRecognizer_create()
+    detector = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
+
+    print ("\n [INFO] Training face models")
+    faces,ids = getImagesAndLabels(path, detector)
+    recognizer.train(faces, np.array(ids))
+
+    # Save the model into trainer/trainer.yml
+    recognizer.write('model/trainer.yml')
 
 
 
-# Print the numer of faces trained and end program
-print("\n [INFO] Finished: {0} faces trained.".format(len(np.unique(ids))))
+    # Print the numer of faces trained and end program
+    print("\n [INFO] Finished: {0} faces trained.".format(len(np.unique(ids))))
+
+
+def setup(subparser):
+    return subparser
