@@ -12,8 +12,8 @@ from configparser import ConfigParser
 import cv2
 import numpy as np
 import os
-from config_loader import ConfigLoader 
-from profiles import Profiles
+from src.config_loader import ConfigLoader 
+from src.profiles import Profiles
 import numpy as np
 from collections import deque as dq
 
