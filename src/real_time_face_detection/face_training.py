@@ -59,7 +59,7 @@ def getImagesAndLabels(path, detector):
     return faceSamples,ids
 
 
-def main():
+def main(args):
     # Path for face image database
     path = 'dataset'
 
@@ -77,3 +77,7 @@ def main():
 
     # Print the numer of faces trained and end program
     print("\n [INFO] Finished: {0} faces trained.".format(len(np.unique(ids))))
+
+
+def setup(subparser):
+    return subparser

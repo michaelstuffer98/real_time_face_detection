@@ -37,7 +37,7 @@ class FaceAveraging:
         return (int(np.mean(f[0])), int(np.mean(f[1])), int(np.mean(f[2])), int(np.mean(f[3])))
 
 
-def main():
+def main(args):
     recognizer = cv2.face.LBPHFaceRecognizer_create()
     recognizer.read('model/trainer.yml')   #load trained model
     cascadePath = "haarcascade_frontalface_default.xml"
@@ -106,3 +106,7 @@ def main():
     print("\n [INFO] Exiting Program and cleanup stuff")
     cam.release()
     cv2.destroyAllWindows()
+
+
+def setup(subparser):
+    return subparser

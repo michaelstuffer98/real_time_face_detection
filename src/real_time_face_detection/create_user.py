@@ -21,7 +21,7 @@ def abort(cam, face_id: str, profiles: Profiles):
     print("Process cancelled by User")
     exit(1)
 
-def main():
+def main(args):
     # For each person, enter one numeric face id (must enter number start from 1, this is the lable of person 1)
     VISUALIZE = False
 
@@ -110,3 +110,7 @@ def main():
     print("\n [INFO] Done, created profile for ", face_id, " (", n_pictures, " pictures taken)")
     cam.release()
     cv2.destroyAllWindows()
+
+
+def setup(subparser):
+    return subparser
