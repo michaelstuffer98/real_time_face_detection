@@ -26,9 +26,9 @@ class PROFILE_RET(Enum):
 
 
 class Profiles:
-    def __init__(self):
+    def __init__(self, filepath="src/real_time_face_detection/ressources/profiles.json"):
         self.profiles = None
-        self.read_profiles()
+        self.read_profiles(filepath)
 
     def json(self):
         if self.profiles is None:
@@ -54,8 +54,8 @@ class Profiles:
             deleted_key = self.profiles.pop(id, None)
             if deleted_key is not None:
                 [
-                    os.remove('dataset/' + file)
-                    for file in os.listdir('dataset/')
+                    os.remove('src/real_time_face_detection/ressources/dataset' + file)
+                    for file in os.listdir('src/real_time_face_detection/ressources/dataset')
                     if re.search("User." + id + ".[0-9]+.jpg", file)
                 ]
 
@@ -66,12 +66,12 @@ class Profiles:
         else:
             return (False, "Read in the profiles before accessing them")
 
-    def read_profiles(self, overwrite=False):
+    def read_profiles(self, filepath, overwrite=False):
         if self.profiles is not None and overwrite is False:
             print("Profiles have already been readed, use override flag")
             return
         self.profiles = {}
-        json_profiles = self.generator_profiles()
+        json_profiles = self.generator_profiles(filepath)
         for profile in json_profiles:
             self.profiles[profile["name"]] = profile["label"]
 
@@ -80,27 +80,8 @@ class Profiles:
             json.dump(self.json(), f, indent=4)
         self.changed = False
 
-    def generator_profiles(self):
-        with open("src/real_time_face_detection/ressources/profiles.json", "r") as f:
+    def generator_profiles(self, filepath):
+        with open(filepath, "r") as f:
             profiles = json.load(f)
         for profile in profiles["profiles"]:
             yield profile
-
-
-# Simple test routine
-def test():
-    import os
-
-    init_size = os.path.getsize('profiles.json')
-
-    profiles = Profiles()
-    r = profiles.add_profile("case")
-    print(r[1])
-    r = profiles.add_profile("case")
-    print(r[1])
-    r = profiles.remove_profile("case")
-    print(r[1])
-    r = profiles.remove_profile("case")
-    print(r[1])
-
-    assert init_size == os.path.getsize('profiles.json')
