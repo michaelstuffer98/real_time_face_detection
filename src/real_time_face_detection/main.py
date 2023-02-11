@@ -8,10 +8,10 @@ from real_time_face_detection.real_time_recognition import setup as recognition_
 def main():
     parser = argparse.ArgumentParser('real_time_face_detection', formatter_class=argparse.RawTextHelpFormatter)
     subparsers = parser.add_subparsers()
-    
+
     # Setup the parsers for the subcommands
     parser_create = subparsers.add_parser('create',
-                                           help="""
+                                          help="""
 Delegates to the create-user function
     Gives the possibility to manage user profiles and add more users
     This process includes feeding the pictures to the database""")
@@ -20,25 +20,25 @@ Delegates to the create-user function
     parser_create.set_defaults(func=create_main)
 
     parser_training = subparsers.add_parser('training',
-                                             help="""
+                                            help="""
 Delegates to the train-faces function
     Takes all the existing profiles and their photos and trains the model for later recognition""")
 
     parser_training = training_setup(parser_training)
     parser_training.set_defaults(func=training_main)
-    
+
     parser_recognition = subparsers.add_parser('recognition',
-                                                help="""
+                                               help="""
 Delegates to the real-time-recognition function
     Starts the camera and hopefully recognizes you!""")
 
     parser_recognition = recognition_setup(parser_recognition)
     parser_recognition.set_defaults(func=recognition_main)
-    
+
     parser.add_argument('--version', action='version', version='%(prog)s 0.1-Alpha')
 
     args = parser.parse_args()
-    
+
     args.func(args)
 
 

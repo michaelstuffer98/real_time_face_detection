@@ -1,10 +1,9 @@
-import enum
 import json
-
-from numpy import isin
-from enum import Enum
 import os
 import re
+from enum import Enum
+
+
 class PROFILE_RET(Enum):
     OK = 0,
     DUPLICATE = 1,
@@ -14,7 +13,7 @@ class PROFILE_RET(Enum):
 #     def __init__(self, name):
 #         self.name = name
 #         self.label = 0
-    
+
 #     def json(self):
 #         return dict({"name": self.name})
 
@@ -25,22 +24,23 @@ class PROFILE_RET(Enum):
 #             return self.name == __o
 #         raise RuntimeError("Can't compare object of type 'Profile' to object og type '", type(__o), "'")
 
+
 class Profiles:
     def __init__(self):
         self.profiles = None
         self.read_profiles()
 
     def json(self):
-        if self.profiles == None:
-            return ""        
+        if self.profiles is None:
+            return ""
         r = []
-        [ r.append({"name": k, "label": v}) for k, v in self.profiles.items() ]        
-        return {"profiles" : r}
+        [r.append({"name": k, "label": v}) for k, v in self.profiles.items()]
+        return {"profiles": r}
 
     def add_profile(self, name: str):
         name = name
-        if not self.profiles is None:
-            if name not in self.profiles: 
+        if self.profiles is not None:
+            if name not in self.profiles:
                 self.profiles[name] = 0
                 self.flush()
                 return (PROFILE_RET.OK, "Added profile '" + name + "'")
@@ -50,10 +50,15 @@ class Profiles:
             return (PROFILE_RET.FAILURE, "Read in the profiles before accessing them")
 
     def remove_profile(self, id: str):
-        if not self.profiles is None:
+        if self.profiles is not None:
             deleted_key = self.profiles.pop(id, None)
-            if not deleted_key == None:
-                [ os.remove('dataset/' + file) for file in os.listdir('dataset/') if re.search("User." + id + ".[0-9]+.jpg", file) ]
+            if deleted_key is not None:
+                [
+                    os.remove('dataset/' + file)
+                    for file in os.listdir('dataset/')
+                    if re.search("User." + id + ".[0-9]+.jpg", file)
+                ]
+
                 self.flush()
                 return (True, "Removed profile '" + id + "'")
             else:
@@ -62,7 +67,7 @@ class Profiles:
             return (False, "Read in the profiles before accessing them")
 
     def read_profiles(self, overwrite=False):
-        if not self.profiles is None and overwrite == False:
+        if self.profiles is not None and overwrite is False:
             print("Profiles have already been readed, use override flag")
             return
         self.profiles = {}
@@ -72,7 +77,7 @@ class Profiles:
 
     def flush(self):
         with open("profiles.json", mode="w") as f:
-            json.dump(self.json(), f, indent = 4)
+            json.dump(self.json(), f, indent=4)
         self.changed = False
 
     def generator_profiles(self):
@@ -80,6 +85,7 @@ class Profiles:
             profiles = json.load(f)
         for profile in profiles["profiles"]:
             yield profile
+
 
 # Simple test routine
 def test():
@@ -96,6 +102,5 @@ def test():
     print(r[1])
     r = profiles.remove_profile("case")
     print(r[1])
-    
-    assert(init_size == os.path.getsize('profiles.json'))
-# test()
+
+    assert init_size == os.path.getsize('profiles.json')
