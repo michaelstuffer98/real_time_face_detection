@@ -13,7 +13,7 @@ from collections import deque as dq
 import cv2
 import numpy as np
 
-from real_time_face_detection.config_loader import ConfigLoader
+from real_time_face_detection.utils import ConfigLoader
 from real_time_face_detection.profiles import Profiles
 
 
