@@ -11,7 +11,7 @@ from time import sleep
 import cv2
 
 import real_time_face_detection.utils as utils
-from real_time_face_detection.config_loader import ConfigLoader
+from real_time_face_detection.utils import ConfigLoader
 from real_time_face_detection.profiles import Profiles, PROFILE_RET
 
 
